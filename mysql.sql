@@ -19,24 +19,25 @@ CREATE TABLE Meetings
 CREATE TABLE MeetingInstances
 (
     meetingID    INT      NOT NULL REFERENCES Meetings (meetingID) ON DELETE CASCADE ON UPDATE CASCADE,
-    orderID      INT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    orderID      INT      NOT NULL,
     fromDatetime DATETIME NOT NULL,
-    toDatetime   DATETIME NOT NULL
+    toDatetime   DATETIME NOT NULL,
+    PRIMARY KEY (meetingID, orderID)
 );
 
 INSERT INTO Users
-VALUES ('nolis', 69, 'Male', 'nolis@dellatollis.gr'),
-       ('panos', 420, 'Male', 'panos@span.gr'),
-       ('mallo', 420, 'Male', 'teo@mallo.gr'),
-       ('spyros', 5, 'Male', 'g@artop.gr');
+VALUES (1,'nolis', 69, 'Male', 'nolis@dellatollis.gr'),
+       (2,'panos', 420, 'Male', 'panos@span.gr'),
+       (3,'mallo', 420, 'Male', 'teo@mallo.gr'),
+       (4,'spyros', 5, 'Male', 'g@artop.gr');
 
 
 INSERT INTO Meetings
-VALUES ('Dellatollis', 'Dellatollis is a Greek word meaning "the place where the toll is paid".', TRUE,
+VALUES (1,'Dellatollis', 'Dellatollis is a Greek word meaning "the place where the toll is paid".', TRUE,
         'mallo;spyros;nolis'),
-       ('Span', 'Span is a Greek word meaning "the place where the span is paid".', FALSE, NULL),
-       ('Mallo', 'Mallo is a Greek word meaning "the place where the mallo is paid".', TRUE, 'panos;spyros;nolis'),
-       ('Artop', 'Artop is a Greek word meaning "the place where the artop is paid".', FALSE, NULL);
+       (2,'Span', 'Span is a Greek word meaning "the place where the span is paid".', FALSE, NULL),
+       (3,'Mallo', 'Mallo is a Greek word meaning "the place where the mallo is paid".', TRUE, 'panos;spyros;nolis'),
+       (4,'Artop', 'Artop is a Greek word meaning "the place where the artop is paid".', FALSE, NULL);
 
 INSERT INTO MeetingInstances (meetingID, orderID, fromDatetime, toDatetime)
 VALUES (1, 1, '2019-01-01 00:00:00', '2019-01-01 01:00:00'),
@@ -53,3 +54,4 @@ VALUES (1, 1, '2019-01-01 00:00:00', '2019-01-01 01:00:00'),
        (4, 3, '2019-01-01 02:00:00', '2019-01-01 03:00:00');
 
 
+DROP TABLE IF EXISTS MeetingInstances;
