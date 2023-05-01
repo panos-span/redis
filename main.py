@@ -61,10 +61,12 @@ def get_current_participants(meeting_id, meeting_instance_order_id):
 
 # 4
 def get_active_meetings_instances():
-    active_meetings = []
+    active_meetings = set()
     for key in r.scan_iter('meeting_instance_*_*'):
         meeting_instance = json.loads(r.get(key))
-        active_meetings.append(meeting_instance)
+        if str2datetime(meeting_instance['fromDatetime']) <= datetime.now() <= str2datetime(
+                meeting_instance['toDatetime']):
+            active_meetings.add(meeting_instance)
     return active_meetings
 
 
@@ -73,6 +75,7 @@ def end_meeting(meeting_id, meeting_instance_order_id):
     participants = r.smembers(f'participants_{meeting_id}_{meeting_instance_order_id}')
     for user_id in participants:
         leave_meeting(user_id, meeting_id, meeting_instance_order_id)
+    r.delete(f'meeting_instance_{meeting_id}_{meeting_instance_order_id}')
 
 
 # 6
@@ -115,11 +118,19 @@ def get_user_chat_messages(meeting_id, meeting_instance_order_id, user_id):
 
 def controller():
     # Check for active meetings if not active then deactivate them
-    print('Checking for active meetings')
-    active_meetings = get_active_meetings_instances()
-    for meeting in active_meetings:
-        if meeting['toDatetime'] < datetime.now():
-            end_meeting(meeting['meetingID'])
+    active_meetings_instances = get_active_meetings_instances()
+    for key in r.scan_iter('meeting_instance_*_*'):
+        meeting_instance = json.loads(r.get(key))
+        if str2datetime(meeting_instance['toDatetime']) < datetime.now():
+            end_meeting(meeting_instance['meetingID'], meeting_instance['orderID'])
+            active_meetings_instances.remove(meeting_instance)
+        elif str2datetime(meeting_instance['fromDatetime']) <= datetime.now() <= str2datetime(
+                meeting_instance['toDatetime']):
+            active_meetings_instances.add(meeting_instance)
+    return active_meetings_instances
+    # for meeting in active_meetings_instances:
+    #    if str2datetime(meeting['toDatetime']) < datetime.now():
+    #        end_meeting(meeting['meetingID'], meeting['orderID'])
 
 
 def str2datetime(date_str):
@@ -151,11 +162,11 @@ if __name__ == '__main__':
     # Insert active meeting_instances to redis
     with r.pipeline() as pipe:
         for meeting_instance in meeting_instances:
-            if str2datetime(meeting_instance['fromDatetime']) <= datetime.now() <= str2datetime(
-                    meeting_instance['toDatetime']):
-                for field, value in meeting_instance.items():
-                    pipe.hset(f'meeting_instance_{meeting_instance["meetingID"]}_{meeting_instance["orderID"]}', field,
-                              value)
+            # if str2datetime(meeting_instance['fromDatetime']) <= datetime.now() <= str2datetime(
+            #        meeting_instance['toDatetime']):
+            for field, value in meeting_instance.items():
+                pipe.hset(f'meeting_instance_{meeting_instance["meetingID"]}_{meeting_instance["orderID"]}', field,
+                          value)
         pipe.execute()
     # meeting_audience = json.loads(meeting_audience.to_json(orient='records'))
     print(meetings)
