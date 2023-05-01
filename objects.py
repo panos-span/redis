@@ -20,16 +20,9 @@ class Meeting:
         self.title = kwargs.get('title')
         self.description = kwargs.get('description')
         self.isPublic = kwargs.get('isPublic')
-        self.audience = kwargs.get('audience', None)  # if audience is None, then it is public
 
     def __getattr__(self, item):
         return self.__dict__[item]
-
-    def get_audience(self):
-        if self.audience is None:
-            return None
-        return self.audience.split(';').todict()
-
 
 
 class MeetingInstance:
