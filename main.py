@@ -5,7 +5,6 @@ import json
 import time
 from datetime import datetime
 import random
-import schedule as schedule
 from objects import User, MeetingInstance
 from mysql_handler import MySQLHandler
 import pandas as pd
@@ -15,8 +14,6 @@ r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 # 1
 def join_meeting(user, meeting_instance, audience=None):
-    # user = json.loads(r.get(f'user_{user_id}'))
-    # meeting_instance = json.loads(r.get(f'meeting_instance_{meetingID}_{meeting_instance_orderID}'))
     if audience is None or user.email in audience:
         r.sadd(f'participants_{meeting_instance.meetingID}_{meeting_instance.orderID}', user.userID)
         event = {
@@ -28,18 +25,6 @@ def join_meeting(user, meeting_instance, audience=None):
         r.rpush('events_log', json.dumps(event, default=str))
         return True
     return False
-
-    # if meeting_instance['is_public'] or user['email'] in meeting_instance['audience']:
-    #    r.sadd(f'participants_{meeting_instance.meetingID}', user.id)
-    #    event = {
-    #        'event_id': f'event_{int(time.time())}',
-    #        'user_id': user.id,
-    #        'event_type': 1,  # join_meeting
-    #        'timestamp': datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    #    }
-    #    r.rpush('events_log', json.dumps(event))
-    #    return True
-    # return False
 
 
 # 2
@@ -127,7 +112,9 @@ def generateRandomMessage():
 
 
 def controller():
-    while True:
+    start_time = time.time()
+    while main.is_alive():
+        print(time.time() - start_time)
         # Check for active meetings if not active then deactivate them
         active_meetings_instances = get_active_meetings_instances()
         for key in r.scan_iter('meeting_instance_*_*'):
@@ -143,17 +130,8 @@ def controller():
             # Activate meeting if it is not active
             # elif str2datetime(meeting_instance['fromDatetime']) <= datetime.now() <= str2datetime(
             #        meeting_instance['toDatetime']):
-            #    with r.pipeline() as pipe:
-            #        for field, value in meeting_instance.items():
-            #            pipe.hset(f'meeting_instance_{meeting_instance["meetingID"]}_{meeting_instance["orderID"]}',
-            #                      field,
-            #                      value)
-            #        pipe.execute()
-            #     active_meetings_instances[f"{meeting_instance['meetingID']}_{meeting_instance['orderID']}"] = meeting_instance
+
         time.sleep(60)
-    # for meeting in active_meetings_instances:
-    #    if str2datetime(meeting['toDatetime']) < datetime.now():
-    #        end_meeting(meeting['meetingID'], meeting['orderID'])
 
 
 def str2datetime(date_str):
@@ -171,6 +149,7 @@ def initialise_columns():
 def run():
     start_time = time.time()
     while time.time() - start_time < 120:  # Run for 2 minutes
+        print(time.time() - start_time)
         choice = random.randint(0, 8)
         user_num = random.randint(0, 3)
         meeting_num = random.randint(0, 3)
@@ -213,7 +192,6 @@ if __name__ == '__main__':
     meeting_instances = pd.DataFrame(db.select('SELECT * FROM meeting_instances'), columns=meeting_instance_columns)
 
     meeting_audience = pd.DataFrame(db.select('SELECT * FROM meeting_audience'), columns=meeting_audience_columns)
-    print(meeting_audience)
     users = json.loads(users.to_json(orient='records'))
     meetings = json.loads(meetings.to_json(orient='records'))
     meeting_instances = json.loads(meeting_instances.to_json(orient='records', date_format='iso'))
@@ -226,57 +204,6 @@ if __name__ == '__main__':
                 pipe.hset(f'meeting_instance_{meeting_instance["meetingID"]}_{meeting_instance["orderID"]}', field,
                           value)
         pipe.execute()
-        # meeting_audience = json.loads(meeting_audience.to_json(orient='records'))
-        # print(meetings)
-        # print(meeting_instances)
-        # user_num = random.randint(0, 3)
-        # meeting_num = random.randint(0, 3)
-        # user = User(**users[user_num])
-        # meeting_instance = MeetingInstance(**meeting_instances[meeting_num])
-        # if meetings[meeting_instance.meetingID]['is_public']:
-        #    join_meeting(user, meeting_instance)
-        # else:
-        #    print('Meeting is private')
-        #    print(join_meeting(user, meeting_instance,
-        #                       meeting_audience[meeting_audience['meetingID'] == meeting_num + 1]['email'].values))
-
-        # join_meeting()
-    # schedule.every(60).seconds.do(controller)
-    # Run loop for 120 seconds continuously
-    # t_end = time.time() + 60 * 2
-    # leave_meeting(1, 1, 1)
-    # while time.time() < t_end:
-    #    schedule.run_pending()
-    #    choice = random.randint(0, 8)
-    #    user_num = random.randint(0, 3)
-    #    meeting_num = random.randint(0, 3)
-    #    user = User(**users[user_num])
-    #    meeting_instance = MeetingInstance(**meeting_instances[meeting_num])
-    #    if choice == 0:
-    #        if meetings[meeting_instance.meetingID]['is_public']:
-    #            join_meeting(user, meeting_instance)
-    #        else:
-    #            print('Meeting is private')
-    #            print(join_meeting(user, meeting_instance,
-    #                               meeting_audience[meeting_audience['meetingID'] == meeting_num + 1]['email'].values))
-    #    elif choice == 1:
-    #        leave_meeting(user.userID, meeting_instance.meetingID, meeting_instance.orderID)
-    #    elif choice == 2:
-    #        get_current_participants(meeting_instance.meetingID, meeting_instance.orderID)
-    #    elif choice == 3:
-    #        get_active_meetings_instances()
-    #    elif choice == 4:
-    #        end_meeting(meeting_instance.meetingID, meeting_instance.orderID)
-    #    elif choice == 5:
-    #        post_chat_message(user.userID, meeting_instance.meetingID, meeting_instance.orderID,
-    #                          generateRandomMessage())
-    #    elif choice == 6:
-    #        get_chat_messages(meeting_instance.meetingID, meeting_instance.orderID)
-    #    elif choice == 7:
-    #        get_join_timestamps(meeting_instance.meetingID, meeting_instance.orderID)
-    #    elif choice == 8:
-    #        get_user_chat_messages(meeting_instance.meetingID, meeting_instance.orderID, user.userID)
-    #    time.sleep(1)
 
     main = threading.Thread(target=run)
     main.start()
@@ -291,13 +218,15 @@ if __name__ == '__main__':
     scheduler.join(timeout=1)  # Give it a chance to finish the current iteration
 
     # Load the event_log data from redis to mysql
-    for event in r.lrange('events_log', 0, -1):
-        event_log = json.loads(event)
+    while r.llen('events_log') > 0:
+        # Pop a JSON document from the Redis list
+        json_document = r.lpop('event_log').decode("utf-8")
+        event_log = json.loads(json_document)
         sql_query = "INSERT INTO events_log (event_id, userID, event_type, timestamp) VALUES (%s, %s, %s, %s)"
         values = (
             event_log['event_id'], event_log['user_id'], event_log['event_type'],
             str2datetime(event_log['timestamp']))
-        # values = (**event_log)
+        # values = **event_log
         db.execute(sql_query, values)
 
     db.close()
