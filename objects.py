@@ -3,7 +3,7 @@ from datetime import datetime
 
 class User:
     def __init__(self, **kwargs):
-        self.id = kwargs.get('userID')
+        self.userID = kwargs.get('userID')
         self.name = kwargs.get('username')
         self.age = kwargs.get('age')
         self.gender = kwargs.get('gender')
@@ -29,8 +29,8 @@ class MeetingInstance:
 
     def __init__(self, **kwargs):
         self.isActive = None
-        self.meeting_id: int = kwargs.get('meetingID')
-        self.order_id: int = kwargs.get('orderID')
+        self.meetingID: int = kwargs.get('meetingID')
+        self.orderID: int = kwargs.get('orderID')
         self.fromDatetime: datetime = self.str2datetime(kwargs.get('fromDatetime'))
         self.toDatetime: datetime = self.str2datetime(kwargs.get('toDatetime'))
         self.checkActivity()

@@ -1,7 +1,4 @@
 import mysql.connector as mysql
-import pandas as pd
-from objects import User
-import threading
 
 class MySQLHandler:
 
@@ -26,8 +23,8 @@ class MySQLHandler:
         self.cursor.execute(query)
         return self.cursor.fetchall()
 
-    def execute(self, query):
-        self.cursor.execute(query)
+    def execute(self, query, values):
+        self.cursor.execute(query, values)
         self.connection.commit()
 
     def fetchall(self):
@@ -39,15 +36,3 @@ class MySQLHandler:
     def close(self):
         self.connection.close()
         self.cursor.close()
-
-
-#connection = MySQLHandler()
-#connection.connect()
-#x = pd.DataFrame(connection.select("SELECT * FROM `users`"), columns=['id', 'username', 'age', 'Gender', 'email'])
-## get row where username = nolis
-#print(x.iloc[0])
-#kwargs = x.iloc[0].to_dict()
-#user = User(**kwargs)
-#print(user.name)
-#scheduler = Scheduler()
-#threading.Timer(60.0, scheduler.checkActiveMeetings()).start()

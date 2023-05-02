@@ -75,12 +75,12 @@ VALUES (1, 1, '2019-01-01 00:00:00', '2019-01-01 01:00:00'),
        (4, 3, '2019-01-01 02:00:00', '2019-01-01 03:00:00');
 
 
-DROP TABLE IF EXISTS MeetingInstances;
+DROP TABLE IF EXISTS events_log;
 
 CREATE TABLE events_log
 (
-    event_id    INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    userID      INT          NOT NULL REFERENCES Users (userID) ON DELETE CASCADE ON UPDATE CASCADE,
-    event_type  INT NOT NULL,
-    timestamp   DATETIME     NOT NULL
+    event_id   VARCHAR(255) NOT NULL PRIMARY KEY,
+    userID     INT          NOT NULL REFERENCES Users (userID) ON DELETE CASCADE ON UPDATE CASCADE,
+    event_type INT          NOT NULL,
+    timestamp  DATETIME     NOT NULL
 );
