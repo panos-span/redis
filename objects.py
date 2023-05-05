@@ -11,6 +11,11 @@ class User:
     """
 
     def __init__(self, **kwargs):
+        """
+        Constructor of the class
+
+        :param kwargs: dictionary of the attributes
+        """
         self.userID: int = kwargs.get('userID')
         self.name = kwargs.get('username')
         self.age: int = kwargs.get('age')
@@ -33,6 +38,11 @@ class Meeting:
     """
 
     def __init__(self, **kwargs):
+        """
+        Constructor of the class
+
+        :param kwargs: dictionary of the attributes
+        """
         self.meetingID = kwargs.get('meetingID')
         self.title = kwargs.get('title')
         self.description = kwargs.get('description')
