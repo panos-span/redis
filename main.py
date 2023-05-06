@@ -27,7 +27,7 @@ def join_meeting(user, meeting, audience=None):
     """
     Allows a user to join a meeting if the meeting is active and the user is allowed to join.
 
-    :param user: the user that wants to join the meeting
+    :param user: the user that wants to join a meeting
     :param meeting: the meeting that the user wants to join
     :param audience: the list of users that are allowed to join the meeting
     :return: true if the user joined the meeting, false otherwise
@@ -245,8 +245,13 @@ def controller():
                 r.hset(f'meeting_{meeting_inst_active["meetingID"]}', 'isActive',
                        1)
                 continue
-            # If there are no active meeting instances, make the meeting inactive
+
             meetingID = int(meeting['meetingID'])
+            # Check if meeting was active in the previous iteration
+            if int(meeting['isActive']):
+                end_meeting(meetingID)
+
+            # If there are no active meeting instances, make the meeting inactive
             r.hset(f'meeting_{meetingID}', 'isActive',
                    0)
         time.sleep(60)
