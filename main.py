@@ -102,6 +102,7 @@ def get_current_participants(meetingID):
 def get_active_meetings():
     """
     Retrieves a list of active meetings.
+
     :return: A list of active meetings.
     """
     active_meetings = {}
@@ -120,8 +121,8 @@ def end_meeting(meetingID):
     """
     Ends a meeting by removing all participants from the meeting.
 
-    :param meetingID:
-    :return:
+    :param meetingID: the id of the meeting that will be ended
+    :return: nothing
     """
     participants = r.smembers(f'participants_{meetingID}')
     for user_id in participants:
@@ -152,6 +153,7 @@ def post_chat_message(user_id, meetingID, message):
 def get_chat_messages(meetingID):
     """
     Retrieves all chat messages from a meeting.
+
     :param meetingID: the id of the meeting
     :return: list of chat messages
     """
@@ -164,6 +166,7 @@ def get_chat_messages(meetingID):
 def get_join_timestamps(meetingID):
     """
     Retrieves the join timestamps of all participants in a meeting.
+
     :param meetingID: the id of the meeting
     :return: dictionary of join timestamps
     """
@@ -194,6 +197,7 @@ def get_active_meeting_timestamps():
 def get_user_chat_messages(meetingID, user_id):
     """
     Retrieves all chat messages from a meeting for a specific user.
+
     :param meetingID: the id of the meeting
     :param user_id: the id of the user
     :return: list of chat messages
@@ -215,6 +219,7 @@ def get_user_chat_messages(meetingID, user_id):
 def generateRandomMessage():
     """
     Generates a random message for testing purposes.
+
     :return: random message
     """
     return "Random Message " + str(datetime.now())

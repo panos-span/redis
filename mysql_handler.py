@@ -1,3 +1,5 @@
+__authors__ = 'Panagiotis Spanakis, Emmanouil Dellatolas'
+
 import mysql.connector as mysql
 
 
