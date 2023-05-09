@@ -351,11 +351,13 @@ if __name__ == '__main__':
     # Connect to redis
     r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
+    password = input('Enter mysql password: ')
+
     # Load dataframe columns
     user_columns, meeting_columns, meeting_audience_columns, meeting_instance_columns = initialise_columns()
 
     # Connect to mysql
-    db = MySQLHandler()
+    db = MySQLHandler(password=password)
     db.connect()
 
     # Load data from mysql to pandas dataframes

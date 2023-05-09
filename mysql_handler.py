@@ -23,13 +23,13 @@ class MySQLHandler:
         The cursor of the database
     """
 
-    def __init__(self):
+    def __init__(self, password):
         """
         Constructor of the class
         """
         self.host = '195.251.249.131'
         self.user = 'ismgroup52'
-        self.password = 'fk3qqz'
+        self.password = password   # 'f-k-3-q-q-z-'
         self.database = 'ismgroup52'
         self.connection = None
         self.cursor = None
