@@ -32,7 +32,7 @@ def join_meeting(user, meeting, audience=None):
     :param audience: the list of users that are allowed to join the meeting
     :return: true if the user joined the meeting, false otherwise
     """
-
+    print('Spyrosssssss')
     # Get meeting instance status from redis
     key = f'meeting_{meeting.meetingID}'
     if r.hget(key, 'isActive') is None:
@@ -42,6 +42,11 @@ def join_meeting(user, meeting, audience=None):
         return False
     # If the user is allowed to join, add them to the participants list
     if audience is None or user.email in audience:
+        # If user already is in the meeting, return false
+        if r.sismember(f'participants_{meeting.meetingID}', user.userID):
+            print('Spyrosssssss nooooo')
+            return False
+        print('Spyrosssssss yeeeessss')
         r.sadd(f'participants_{meeting.meetingID}', user.userID)
         event = {
             'event_id': f'event_{(time.time())}',
@@ -244,7 +249,11 @@ def controller():
             # Check for meeting instances where the current time is between the start and end time
             meeting_inst_active = meeting_inst[
                 (meeting_inst['fromDatetime'] <= datetime.now()) & (meeting_inst['toDatetime'] >= datetime.now())]
-            meeting_inst_active = json.loads(meeting_inst_active.to_json(orient='records', date_format='iso'))[0]
+
+            if len(meeting_inst_active) > 0:
+                meeting_inst_active = json.loads(meeting_inst_active.to_json(orient='records', date_format='iso'))[0]
+            else:
+                meeting_inst_active = None
 
             if meeting_inst_active is not None:
                 r.hset(f'meeting_{meeting_inst_active["meetingID"]}', 'isActive',
@@ -257,8 +266,7 @@ def controller():
                 end_meeting(meetingID)
 
             # If there are no active meeting instances, make the meeting inactive
-            r.hset(f'meeting_{meetingID}', 'isActive',
-                   0)
+            r.hset(f'meeting_{meetingID}', 'isActive', 0)
         time.sleep(60)
 
 
@@ -299,30 +307,33 @@ def run():
         meeting_num = random.randint(1, 4)
         user = User(**users[user_num])
         meeting = Meeting(**meetings[meeting_num])
+        user1 = User(**users[2])
+        meeting1 = Meeting(**meetings[3])
+        join_meeting(user1, meeting1)
         if choice == 0:
             if meetings[meeting.meetingID]['is_public']:
-                join_meeting(user, meeting)
+                print(join_meeting(user, meeting))
             else:
                 print('Meeting is private')
                 print(join_meeting(user, meeting,
                                    meeting_audience[meeting_audience['meetingID'] == meeting_num]['email'].values))
         elif choice == 1:
-            leave_meeting(user.userID, meeting.meetingID)
+            print(leave_meeting(user.userID, meeting.meetingID))
         elif choice == 2:
-            get_current_participants(meeting.meetingID)
+            print(get_current_participants(meeting.meetingID))
         elif choice == 3:
-            get_active_meetings()
+            print(get_active_meetings())
         elif choice == 4:
-            end_meeting(meeting.meetingID)
+            print(end_meeting(meeting.meetingID))
         elif choice == 5:
-            post_chat_message(user.userID, meeting.meetingID,
-                              generateRandomMessage())
+            print(post_chat_message(user.userID, meeting.meetingID,
+                                    generateRandomMessage()))
         elif choice == 6:
-            get_chat_messages(meeting.meetingID)
+            print(get_chat_messages(meeting.meetingID))
         elif choice == 7:
-            get_join_timestamps(meeting.meetingID)
+            print(get_join_timestamps(meeting.meetingID))
         elif choice == 8:
-            get_user_chat_messages(meeting.meetingID, user.userID)
+            print(get_user_chat_messages(meeting.meetingID, user.userID))
         time.sleep(1)  # Sleep for 1 second
 
 
@@ -375,6 +386,7 @@ if __name__ == '__main__':
         for meeting in meetings:
             for field, value in meeting.items():
                 pipe.hset(f'meeting_{meeting["meetingID"]}', field, value)
+            pipe.hset(f'meeting_{meeting["meetingID"]}', 'isActive', 0)
         pipe.execute()
 
     # Make keys of the meetings dictionary the meetingID for faster access
