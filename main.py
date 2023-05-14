@@ -32,11 +32,8 @@ def join_meeting(user, meeting, audience=None):
     :param audience: the list of users that are allowed to join the meeting
     :return: true if the user joined the meeting, false otherwise
     """
-    print('Spyrosssssss')
     # Get meeting instance status from redis
     key = f'meeting_{meeting.meetingID}'
-    if r.hget(key, 'isActive') is None:
-        return False
     meeting_status = int(r.hget(key, 'isActive').decode('utf-8'))
     if not meeting_status:
         return False
@@ -44,9 +41,7 @@ def join_meeting(user, meeting, audience=None):
     if audience is None or user.email in audience:
         # If user already is in the meeting, return false
         if r.sismember(f'participants_{meeting.meetingID}', user.userID):
-            print('Spyrosssssss nooooo')
             return False
-        print('Spyrosssssss yeeeessss')
         r.sadd(f'participants_{meeting.meetingID}', user.userID)
         event = {
             'event_id': f'event_{(time.time())}',
@@ -70,8 +65,6 @@ def leave_meeting(user_id, meetingID, timeOut=False):
     :return: true if the user left the meeting, false otherwise
     """
     key = f'meeting_{meetingID}'
-    if r.hget(key, 'isActive') is None:
-        return False
     meeting_status = int(r.hget(key, 'isActive').decode('utf-8'))
     if not meeting_status:
         return False
@@ -100,7 +93,10 @@ def get_current_participants(meetingID):
     :param meetingID: the id of the meeting
     :return: a list of the current participants in a meeting
     """
-    return list(r.smembers(f'participants_{meetingID}'))
+    participants_ids = [int(participant.decode('utf-8')) for participant in r.smembers(f'participants_{meetingID}')]
+    # Get the users from the participants id list
+    participants = [users[id] for id in participants_ids]
+    return participants
 
 
 # 4
@@ -116,7 +112,7 @@ def get_active_meetings():
         hash_table_contents = r.hgetall(key.decode("utf-8"))
         # Decode the byte strings returned by the hgetall method
         meeting = {k.decode("utf-8"): v.decode("utf-8") for k, v in hash_table_contents.items()}
-        if meeting['isActive']:
+        if int(meeting['isActive']):
             active_meetings[meeting['meetingID']] = meeting
     return active_meetings
 
@@ -208,8 +204,6 @@ def get_user_chat_messages(meetingID, user_id):
     :return: list of chat messages
     """
     key = f'meeting_{meetingID}'
-    if r.hget(key, 'isActive') is None:
-        return False
     meeting_status = int(r.hget(key, 'isActive').decode('utf-8'))
     if not meeting_status:
         return False
@@ -238,9 +232,7 @@ def controller():
 
     :return: nothing
     """
-    start_time = time.time()
     while main.is_alive():
-        print(time.time() - start_time)
         for key in r.scan_iter('meeting_*'):
             hash_table_contents = r.hgetall(key.decode("utf-8"))
             # Decode the byte strings returned by the hgetall method
@@ -301,15 +293,11 @@ def run():
     time.sleep(1)
     start_time = time.time()
     while time.time() - start_time < 120:  # Run for 2 minutes
-        # print(time.time() - start_time)
         choice = random.randint(0, 8)
-        user_num = random.randint(0, 3)
+        user_num = random.randint(1, 4)
         meeting_num = random.randint(1, 4)
         user = User(**users[user_num])
         meeting = Meeting(**meetings[meeting_num])
-        user1 = User(**users[2])
-        meeting1 = Meeting(**meetings[3])
-        join_meeting(user1, meeting1)
         if choice == 0:
             if meetings[meeting.meetingID]['is_public']:
                 print(join_meeting(user, meeting))
@@ -391,6 +379,7 @@ if __name__ == '__main__':
 
     # Make keys of the meetings dictionary the meetingID for faster access
     meetings = {meeting['meetingID']: meeting for meeting in meetings}
+    users = {user['userID']: user for user in users}
 
     # Start the continuous thread
     main = threading.Thread(target=run)
@@ -413,5 +402,6 @@ if __name__ == '__main__':
     for key in r.scan_iter('participants_*'):
         r.delete(key.decode("utf-8"))
 
-    # Close the connection to mysql
+    # Close the connection to mysql and redis
     db.close()
+    r.close()
